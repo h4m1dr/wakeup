@@ -2,12 +2,6 @@
 
 A lightweight, serverless Discord management and wake-up bot built for **Cloudflare Workers**. Designed to keep your free-tier cloud services (like Render) alive using on-demand Discord UI buttons and randomized smart pings.
 
-## Quick Start (One-Click Deployment)
-
-The fastest way to deploy Wakee is by using the official Cloudflare Workers deployment button below:
-
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/h4m1dr/wakeup)
-
 ---
 
 ## Features
@@ -22,6 +16,9 @@ The fastest way to deploy Wakee is by using the official Cloudflare Workers depl
 ## 🚀 Quick Start (Two-Stage Automated Deployment)
 
 1. Click the button below to deploy the **Seed Worker** to your Cloudflare account.
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/h4m1dr/wakeup)
+
 2. Open the provided Worker URL (e.g., `https://wakee-bot.your-subdomain.workers.dev`).
 3. Follow the **Setup Wizard** on the page. It will automatically:
    - Create a KV Namespace (`WAKEE_KV`).
@@ -29,7 +26,6 @@ The fastest way to deploy Wakee is by using the official Cloudflare Workers depl
    - Securely store your Discord Token and Admin Password.
    - Set up a Cron Job for automated wake-ups.
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/h4m1dr/wakeup)
 
 ## 🛠 Manual Setup (If needed)
 If the automated wizard fails, you can manually:
