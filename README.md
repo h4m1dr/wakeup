@@ -19,32 +19,29 @@ The fastest way to deploy Wakee is by using the official Cloudflare Workers depl
 
 ---
 
-## Manual Installation Guide (Directly via Cloudflare Dashboard)
+## 🚀 Quick Start (Two-Stage Automated Deployment)
 
-If you prefer not to use the automated deploy button or Wrangler CLI, you can easily set up and paste the code directly inside your Cloudflare browser dashboard. Follow these steps:
+1. Click the button below to deploy the **Seed Worker** to your Cloudflare account.
+2. Open the provided Worker URL (e.g., `https://wakee-bot.your-subdomain.workers.dev`).
+3. Follow the **Setup Wizard** on the page. It will automatically:
+   - Create a KV Namespace (`WAKEE_KV`).
+   - Inject the full bot code.
+   - Securely store your Discord Token and Admin Password.
+   - Set up a Cron Job for automated wake-ups.
 
-### Step 1: Create a Cloudflare Worker
-1. Log in to your [Cloudflare Dashboard](https://dash.cloudflare.com/).
-2. From the left sidebar, navigate to **Workers & Pages**.
-3. Click on the **Create application** button and select **Create Worker**.
-4. Give your worker a recognizable name (e.g., `wakee-bot`) and click **Deploy**. (Don't worry about the default code for now).
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/h4m1dr/wakeup)
 
-### Step 2: Paste the Bot Code
-1. Once deployed, click on the **Edit code** button inside your newly created worker.
-2. In the online code editor (Workers Playground), delete any existing default code in the `index.js` file.
-3. Copy the clean worker code from this repository's `index.js` (or `worker.js`) file and paste it directly into the Cloudflare online editor.
-4. Click the **Save and deploy** button in the top right corner.
+## 🛠 Manual Setup (If needed)
+If the automated wizard fails, you can manually:
+1. Create a KV Namespace named `WAKEE_KV` in Cloudflare.
+2. Copy the contents of `full_worker.js` into your Worker.
+3. Bind the KV Namespace to the variable `WAKEE_KV`.
+4. Add Secrets: `DISCORD_TOKEN` and `ADMIN_PASSWORD`.
+5. Set a Cron Trigger to `*/15 * * * *`.
 
-### Step 3: Configure Environment / Target URLs
-1. Go back to your worker's main dashboard settings.
-2. Navigate to the **Settings** tab, then select **Variables**.
-3. Under the **Environment Variables** section, click **Add variable** to define your target project URLs (for example, to point to your Render web services).
-4. Click **Save**.
-
-### Step 4: Link with Discord Developer Portal
-1. Copy your worker's live URL (e.g., `https://wakee-bot.your-subdomain.workers.dev`).
-2. Go to the [Discord Developer Portal](https://discord.com/developers/applications), open your application, and paste your worker URL into the **Interactions Endpoint URL** field.
-3. Save changes. Your bot is now fully operational and ready to receive interactions!
+## 📜 Policies
+- **Terms of Service:** [View Here](https://h4m1dr.github.io/wakeup/terms.html)
+- **Privacy Policy:** [View Here](https://h4m1dr.github.io/wakeup/privacy.html)
 
 ---
 
@@ -52,10 +49,4 @@ If you prefer not to use the automated deploy button or Wrangler CLI, you can ea
 
 MIT License
 
-## Configuration
-
-After deployment, make sure to configure your environment variables or target URLs inside your worker configuration to point to your target applications (e.g., your Render web services).
-
-## License
-
-MIT License
+---
