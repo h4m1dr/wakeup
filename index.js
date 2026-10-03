@@ -1,59 +1,54 @@
-// Cloudflare Worker - Discord Wake-up & Control Bot with UI Buttons
+// Wakee Bot Core Worker for Cloudflare Workers
 
 export default {
   async fetch(request, env, ctx) {
-    if (request.method !== "POST") {
-      return new Response("Discord Bot is running and waiting for interactions.", { status: 200 });
-    }
+    const url = new URL(request.url);
 
-    // 1. اعتبارسنجی درخواست‌های دیسکورد (Security Check)
-    const signature = request.headers.get("X-Signature-Ed25519");
-    const timestamp = request.headers.get("X-Signature-Timestamp");
-    const bodyText = await request.text();
+    // 1. Handle UI interaction from Discord Buttons
+    if (request.method === "POST") {
+      const bodyText = await request.text();
+      let interaction;
+      try {
+        interaction = JSON.parse(bodyText);
+      } catch (e) {
+        return new Response("Invalid JSON", { status: 400 });
+      }
 
-    // توجه: در پروژه واقعی روی کلادفلر، امضای دیسکورد با nacl بررسی می‌شود.
-    const interaction = JSON.parse(bodyText);
+      // Discord Ping verification (Handshake)
+      if (interaction.type === 1) {
+        return Response.json({ type: 1 });
+      }
 
-    // پاسخ به PING اولیه دیسکورد برای تایید وب‌هوک
-    if (interaction.type === 1) {
-      return Response.json({ type: 1 });
-    }
-
-    // 2. مدیریت کلیک روی دکمه‌ها یا انتخاب از منوها (Message Components / UI)
-    if (interaction.type === 3) {
-      const customId = interaction.data.custom_id;
-
-      if (customId === "btn_wake_hermes") {
-        const targetUrl = "https://hermes-discord.onrender.com";
-        try {
-          const res = await fetch(targetUrl);
-          return Response.json({
-            type: 4,
-            data: {
-              content: `🟢 سیگنال بیدارباش با موفقیت به پروژه Hermes ارسال شد! (وضعیت پاسخ: ${res.status})`,
-              flags: 64 // فقط خودت ببینی (Ephemeral)
-            }
-          });
-        } catch (err) {
-          return Response.json({
-            type: 4,
-            data: { content: `❌ خطا در بیدار کردن پروژه: ${err.message}`, flags: 64 }
-          });
+      // Button clicks (Message Components)
+      if (interaction.type === 3) {
+        const customId = interaction.data.custom_id;
+        
+        if (customId === "btn_wake_hermes") {
+          const targetUrl = env.HERMES_URL || "https://hermes-discord.onrender.com";
+          try {
+            const res = await fetch(targetUrl);
+            return Response.json({
+              type: 4,
+              data: {
+                content: `🟢 سیگنال بیدارباش با موفقیت به پروژه ارسال شد! (وضعیت پاسخ: ${res.status})`,
+                flags: 64 // Ephemeral (Visible only to user)
+              }
+            });
+          } catch (err) {
+            return Response.json({
+              type: 4,
+              data: { content: `❌ خطا در برقراری ارتباط با سرویس: ${err.message}`, flags: 64 }
+            });
+          }
         }
       }
-      
-      // مدیریت سایر دکمه‌ها...
-    }
 
-    // 3. دستور متنی یا اسلش کامند برای باز کردن پنل گرافیکی UI
-    if (interaction.type === 2) {
-      const commandName = interaction.data.name;
-
-      if (commandName === "controlpanel") {
+      // Slash command or Panel trigger
+      if (interaction.type === 2) {
         return Response.json({
           type: 4,
           data: {
-            content: "🎛 **پنل مدیریت و بیدارباش پروژه‌های رندر**\nلطفاً یکی از گزینه‌های زیر را انتخاب کنید:",
+            content: "🎛 **پنل مدیریت و بیدارباش پروژه‌های ابری (Wakee)**\nروی دکمه‌ی زیر کلیک کنید تا سرویس خوابیده بیدار شود:",
             components: [
               {
                 type: 1, // Action Row
@@ -61,14 +56,8 @@ export default {
                   {
                     type: 2, // Button
                     style: 1, // Primary (Blurple)
-                    label: "🚀 بیدار کردن فوری Hermes",
+                    label: "🚀 بیدار کردن سرویس اصلی",
                     custom_id: "btn_wake_hermes"
-                  },
-                  {
-                    type: 2,
-                    style: 2, // Secondary (Grey)
-                    label: "⚙️ تنظیمات زمان‌بندی رندوم",
-                    custom_id: "btn_random_settings"
                   }
                 ]
               }
@@ -78,29 +67,21 @@ export default {
       }
     }
 
-    return Response.json({ error: "Unknown interaction" }, { status: 400 });
+    // 2. Simple status page for the Worker endpoint
+    return new Response("Wakee Bot Worker is active and running smoothly!", { 
+      status: 200, 
+      headers: { "Content-Type": "text/plain; charset=utf-8" } 
+    });
   },
 
-  // 4. بخش Cron Trigger برای اجرای خودکار در بازه‌های رندوم زمانی
+  // 3. Randomized Cron trigger to keep services alive when needed
   async scheduled(event, env, ctx) {
-    const now = new Date();
-    const currentHour = now.getHours(); // ساعت فعلی سیستم (UTC یا تنظیم‌شده)
-
-    // فرض کنید بازه زمانی مجاز بین ساعت 12 تا 18 (12 الی 6 عصر) است
-    const startHour = 12;
-    const endHour = 18;
-
-    if (currentHour >= startHour && currentHour < endHour) {
-        // شانس رندوم برای اینکه در این ساعت پینگ فرستاده شود یا خیر (مثلاً 30 درصد شانس در هر اجرا)
-        const randomChance = Math.random();
-        if (randomChance < 0.3) {
-            try {
-                await fetch("https://hermes-discord.onrender.com");
-                console.log("Random wake-up ping sent successfully during active window.");
-            } catch (e) {
-                console.error("Scheduled ping failed:", e);
-            }
-        }
+    const targetUrl = env.HERMES_URL || "https://hermes-discord.onrender.com";
+    try {
+      await fetch(targetUrl);
+      console.log("Scheduled wake-up ping executed successfully.");
+    } catch (e) {
+      console.error("Scheduled ping failed:", e);
     }
   }
 };
