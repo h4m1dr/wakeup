@@ -1,162 +1,186 @@
-// Wakee Bot - Ultimate Cloudflare Worker with Setup Wizard, Protected Dashboard & Render Wake-up Engine
-
-const SETUP_HTML = `<!DOCTYPE html>
+// Wakee Bot - Stage 1: Setup Wizard Only
+const WIZARD_HTML = `<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>راه‌اندازی اولیه Wakee Wizard</title>
-    <style>
-        body { font-family: Tahoma, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
-        .container { max-width: 700px; margin: auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
-        h2 { color: #38bdf8; border-bottom: 2px solid #334155; padding-bottom: 10px; }
-        .step { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-right: 4px solid #38bdf8; }
-        input, button { width: 100%; padding: 12px; margin-top: 8px; background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 6px; box-sizing: border-box; }
-        button { background: #0284c7; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        button:hover { background: #0369a1; }
-        a { color: #38bdf8; text-decoration: none; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>راه‌اندازی Wakee | Setup Wizard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <h2>🛠 جادوگر راه‌اندازی ربات Wakee</h2>
-        
-        <div class="step">
-            <strong>مقدمه:</strong> برای ساخت ربات، به <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a> بروید، یک اپلیکیشن به نام <code>Wakee</code> بسازید.
-        </div>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-3xl w-full bg-slate-800 rounded-xl shadow-2xl p-8 border border-slate-700">
+        <h1 class="text-3xl font-bold text-blue-400 mb-2 text-center">⚡ جادوگر راه‌اندازی Wakee</h1>
+        <p class="text-center text-slate-400 mb-8 text-sm">این صفحه ورکر اولیه شماست. مراحل زیر را تکمیل کنید تا ربات به صورت خودکار پیکربندی و ارتقا یابد.</p>
 
-        <div class="step">
-            <strong>لینک‌های قوانین و حریم خصوصی:</strong><br>
-            لینک Terms: <input type="text" readonly value="https://h4m1dr.github.io/wakeup/terms.html"><br>
-            لینک Privacy: <input type="text" readonly value="https://h4m1dr.github.io/wakeup/privacy.html">
-        </div>
+        <div class="space-y-6">
+            <!-- Step 1: Discord Info -->
+            <div class="bg-slate-900 p-5 rounded-lg border-r-4 border-blue-500">
+                <h3 class="font-bold text-lg mb-3 text-blue-300">۱. تنظیمات دیسکورد (Discord Developer Portal)</h3>
+                <p class="text-sm text-slate-400 mb-3">مقادیر زیر را در بخش تنظیمات اپلیکیشن دیسکورد خود کپی کنید:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div><span class="text-slate-500">Name:</span> <code class="bg-slate-700 px-2 py-1 rounded text-white">Wakee</code></div>
+                    <div><span class="text-slate-500">Description:</span> <code class="bg-slate-700 px-2 py-1 rounded text-white text-xs">Smart management and wake-up bot for Render services.</code></div>
+                    <div class="md:col-span-2"><span class="text-slate-500">Terms/Privacy URL:</span> <code class="bg-slate-700 px-2 py-1 rounded text-white text-xs break-all">https://h4m1dr.github.io/wakeup/terms.html</code></div>
+                    <div class="md:col-span-2"><span class="text-slate-500">Interactions Endpoint:</span> <code id="workerUrl" class="bg-slate-700 px-2 py-1 rounded text-green-400 text-xs break-all">در حال دریافت...</code></div>
+                </div>
+                <p class="text-xs text-yellow-400 mt-3">⚠️ فراموش نکنید در بخش <strong>Bot</strong>، گزینه‌های Presence, Server Members, و Message Content Intent را روشن کنید.</p>
+            </div>
 
-        <div class="step">
-            <strong>تنظیم رمز عبور پنل:</strong>
-            <input type="password" id="adminPass" placeholder="یک رمز عبور قوی برای پنل وارد کنید...">
-        </div>
+            <!-- Step 2: Cloudflare Credentials -->
+            <div class="bg-slate-900 p-5 rounded-lg border-r-4 border-yellow-500">
+                <h3 class="font-bold text-lg mb-3 text-yellow-300">۲. اطلاعات حساب کلادفلر</h3>
+                <p class="text-sm text-slate-400 mb-3">برای ساخت خودکار KV و تنظیمات، به این اطلاعات نیاز داریم:</p>
+                
+                <label class="block text-sm mb-1">Account ID:</label>
+                <input type="text" id="cfAccountId" class="w-full bg-slate-700 border border-slate-600 rounded p-2 text-white mb-3 focus:ring-2 focus:ring-yellow-500 outline-none" placeholder="مثال: 8d5a...">
+                <a href="https://dash.cloudflare.com/?to=/:account/workers" target="_blank" class="text-xs text-blue-400 hover:underline">🔗 پیدا کردن Account ID در پنل کلادفلر</a>
 
-        <button onclick="completeSetup()">تایید و ورود به پنل مدیریت</button>
+                <label class="block text-sm mb-1 mt-4">Cloudflare API Token:</label>
+                <input type="password" id="cfApiToken" class="w-full bg-slate-700 border border-slate-600 rounded p-2 text-white mb-3 focus:ring-2 focus:ring-yellow-500 outline-none" placeholder="توکن با دسترسی Workers Edit و KV Edit">
+                <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" class="text-xs text-blue-400 hover:underline">🔗 ساخت توکن جدید (از الگوی Edit Cloudflare Workers استفاده کنید و دسترسی Workers KV Storage: Edit را هم اضافه کنید)</a>
+            </div>
+
+            <!-- Step 3: Bot Config -->
+            <div class="bg-slate-900 p-5 rounded-lg border-r-4 border-green-500">
+                <h3 class="font-bold text-lg mb-3 text-green-300">۳. تنظیمات امنیتی ربات</h3>
+                <label class="block text-sm mb-1">Discord Bot Token:</label>
+                <input type="password" id="discordToken" class="w-full bg-slate-700 border border-slate-600 rounded p-2 text-white mb-3 focus:ring-2 focus:ring-green-500 outline-none" placeholder="توکن ربات دیسکورد شما">
+                
+                <label class="block text-sm mb-1">رمز عبور مدیریت پنل (Admin Password):</label>
+                <input type="password" id="adminPass" class="w-full bg-slate-700 border border-slate-600 rounded p-2 text-white focus:ring-2 focus:ring-green-500 outline-none" placeholder="یک رمز قوی برای ورود به پنل انتخاب کنید">
+            </div>
+
+            <!-- Action Button -->
+            <button id="installBtn" onclick="startInstallation()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg transition duration-200 text-lg shadow-lg">
+                🚀 شروع نصب خودکار و ارتقای ورکر
+            </button>
+            
+            <div id="statusLog" class="hidden bg-black rounded p-4 font-mono text-xs text-green-400 h-40 overflow-y-auto border border-slate-700"></div>
+        </div>
     </div>
 
     <script>
-        function completeSetup() {
-            const pass = document.getElementById('adminPass').value;
-            if(!pass) { alert('لطفاً رمز عبور را وارد کنید!'); return; }
-            localStorage.setItem('wakee_pass', pass);
-            alert('راه‌اندازی اولیه انجام شد! به پنل هدایت می‌شوید.');
-            window.location.href = '/panel';
-        }
-    </script>
-</body>
-</html>`;
+        // نمایش آدرس فعلی ورکر
+        document.getElementById('workerUrl').innerText = window.location.origin;
 
-const DASHBOARD_HTML = `<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>پنل مدیریت و بیدارباش Wakee</title>
-    <style>
-        body { font-family: Tahoma, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h2, h3 { color: #38bdf8; border-bottom: 2px solid #334155; padding-bottom: 8px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-size: 14px; }
-        input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px; box-sizing: border-box; }
-        button { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #0369a1; }
-        .logs { background: #0f172a; padding: 12px; border-radius: 6px; font-family: monospace; height: 150px; overflow-y: auto; font-size: 12px; color: #34d399; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>⚡ کنترل‌پنل اختصاصی پروژه‌های رندر (هرمس و...)</h2>
-        
-        <div class="form-group">
-            <label>آدرس پروژه رندر (مثلاً ربات هرمس):</label>
-            <input type="text" id="renderUrl" placeholder="https://hermes-discord.onrender.com">
-        </div>
-
-        <div class="form-group">
-            <label>توکن ربات دیسکورد:</label>
-            <input type="password" id="botToken" placeholder="Discord Bot Token...">
-        </div>
-
-        <button onclick="saveProjectConfig()">ذخیره تنظیمات سرویس</button>
-
-        <h3 style="margin-top: 30px;">📋 لاگ‌ها و وضعیت سیستم بیدارباش</h3>
-        <div class="logs" id="logBox">
-            [System] پنل امن با موفقیت بارگذاری شد.<br>
-            [Status] آماده دریافت دستورات بیدارباش برای سرویس‌های رندر...
-        </div>
-    </div>
-    <script>
-        // بررسی رمز عبور ذخیره‌شده
-        if(!localStorage.getItem('wakee_pass')) {
-            window.location.href = '/setup';
+        function log(msg) {
+            const logBox = document.getElementById('statusLog');
+            logBox.classList.remove('hidden');
+            logBox.innerHTML += \`> \${msg}<br>\`;
+            logBox.scrollTop = logBox.scrollHeight;
         }
 
-        function saveProjectConfig() {
-            alert('تنظیمات پروژه با موفقیت ذخیره شد!');
+        async function startInstallation() {
+            const accountId = document.getElementById('cfAccountId').value.trim();
+            const apiToken = document.getElementById('cfApiToken').value.trim();
+            const discordToken = document.getElementById('discordToken').value.trim();
+            const adminPass = document.getElementById('adminPass').value.trim();
+            const btn = document.getElementById('installBtn');
+
+            if (!accountId || !apiToken || !discordToken || !adminPass) {
+                alert('لطفاً تمام فیلدها را پر کنید!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = '⏳ در حال پیکربندی... (لطفاً صبر کنید)';
+            log('شروع فرآیند نصب...');
+
+            try {
+                const workerName = "wakee-bot"; // نام پیش‌فرض ورکر
+                const rawWorkerUrl = "https://raw.githubusercontent.com/h4m1dr/wakeup/main/full_worker.js";
+
+                log('۱. در حال دریافت کد کامل ربات از گیت‌هاب...');
+                const scriptRes = await fetch(rawWorkerUrl);
+                if (!scriptRes.ok) throw new Error("عدم دسترسی به full_worker.js در گیت‌هاب");
+                const scriptCode = await scriptRes.text();
+
+                log('۲. در حال ساخت فضای ذخیره‌سازی KV (WAKEE_KV)...');
+                const kvRes = await fetch(\`https://api.cloudflare.com/client/v4/accounts/\${accountId}/storage/kv/namespaces\`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': \`Bearer \${apiToken}\`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title: "WAKEE_KV" })
+                });
+                const kvData = await kvRes.json();
+                if (!kvData.success) throw new Error("خطا در ساخت KV: " + JSON.stringify(kvData.errors));
+                const kvId = kvData.result.id;
+                log(\`✅ KV ساخته شد. ID: \${kvId}\`);
+
+                log('۳. در حال آپلود کد کامل ربات و اتصال KV...');
+                // استفاده از فرمت multipart برای آپلود ورکر با بایندینگ
+                const formData = new FormData();
+                formData.append("metadata", JSON.stringify({
+                    main_module: "worker.js",
+                    bindings: [{ name: "WAKEE_KV", type: "kv_namespace", namespace_id: kvId }]
+                }));
+                formData.append("worker.js", new Blob([scriptCode], { type: "application/javascript+module" }));
+
+                const uploadRes = await fetch(\`https://api.cloudflare.com/client/v4/accounts/\${accountId}/workers/scripts/\${workerName}\`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': \`Bearer \${apiToken}\` },
+                    body: formData
+                });
+                const uploadData = await uploadRes.json();
+                if (!uploadData.success) throw new Error("خطا در آپلود ورکر: " + JSON.stringify(uploadData.errors));
+                log('✅ کد ربات با موفقیت جایگزین و KV متصل شد.');
+
+                log('۴. در حال ذخیره امن توکن‌ها (Secrets)...');
+                const secrets = [
+                    { name: "DISCORD_TOKEN", text: discordToken },
+                    { name: "ADMIN_PASSWORD", text: adminPass }
+                ];
+                
+                for (const secret of secrets) {
+                    const secRes = await fetch(\`https://api.cloudflare.com/client/v4/accounts/\${accountId}/workers/scripts/\${workerName}/secrets\`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': \`Bearer \${apiToken}\`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name: secret.name, text: secret.text, type: "secret_text" })
+                    });
+                    const secData = await secRes.json();
+                    if (!secData.success) throw new Error(\`خطا در ذخیره \${secret.name}\`);
+                }
+                log('✅ توکن‌ها به صورت رمزنگاری‌شده ذخیره شدند.');
+
+                log('۵. در حال تنظیم Cron Job برای بیدارباش خودکار (هر ۱۵ دقیقه)...');
+                const cronRes = await fetch(\`https://api.cloudflare.com/client/v4/accounts/\${accountId}/workers/scripts/\${workerName}/schedules\`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': \`Bearer \${apiToken}\`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cron: ["*/15 * * * *"] })
+                });
+                const cronData = await cronRes.json();
+                if (!cronData.success) log('⚠️ هشدار: تنظیم Cron با خطا مواجه شد، می‌توانید دستی از پنل کلادفلر انجام دهید.');
+                else log('✅ Cron Job تنظیم شد.');
+
+                log('🎉 نصب با موفقیت کامل شد! در حال انتقال به پنل مدیریت...');
+                setTimeout(() => {
+                    window.location.href = '/panel';
+                }, 2000);
+
+            } catch (error) {
+                console.error(error);
+                log(\`❌ خطا: \${error.message}\`);
+                btn.disabled = false;
+                btn.innerText = '🚀 تلاش مجدد برای نصب';
+            }
         }
     </script>
 </body>
 </html>`;
 
 export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-
-    // صفحات عمومی و آزاد (بدون نیاز به رمز)
-    if (url.pathname === "/setup") {
-      return new Response(SETUP_HTML, { headers: { "Content-Type": "text/html; charset=utf-8" } });
-    }
-
-    // صفحه پنل مدیریت (محافظت‌شده در لایه فرانت‌اند با پسورد)
-    if (url.pathname === "/panel") {
-      return new Response(DASHBOARD_HTML, { headers: { "Content-Type": "text/html; charset=utf-8" } });
-    }
-
-    // مدیریت درخواست‌های دیسکورد (Interactions Endpoint)
-    if (request.method === "POST") {
-      const bodyText = await request.text();
-      let interaction;
-      try { interaction = JSON.parse(bodyText); } catch (e) { return new Response("Invalid JSON", { status: 400 }); }
-
-      if (interaction.type === 1) return Response.json({ type: 1 }); // Discord Handshake
-
-      // تعاملات دکمه‌ای برای بیدار کردن سرویس رندر هدف (مثل هرمس)
-      if (interaction.type === 3 && interaction.data.custom_id === "btn_wake_target") {
-        const targetUrl = env.RENDER_URL || "https://hermes-discord.onrender.com";
-        try {
-          const res = await fetch(targetUrl);
-          return Response.json({
-            type: 4,
-            data: { content: `🟢 سیگنال بیدارباش به پروژه ارسال شد! (وضعیت پاسخ: ${res.status})`, flags: 64 }
-          });
-        } catch (err) {
-          return Response.json({
-            type: 4,
-            data: { content: `❌ خطا در برقراری ارتباط با سرویس: ${err.message}`, flags: 64 }
-          });
-        }
-      }
-
-      // دستور اسلش برای فراخوانی دکمه‌های پنل
-      if (interaction.type === 2) {
-        return Response.json({
-          type: 4,
-          data: {
-            content: "🎛 **مدیریت بیدارباش سرویس‌های رندر (Wakee)**\nبرای بیدار کردن پروژه روی دکمه زیر کلیک کنید:",
-            components: [{
-              type: 1,
-              components: [{ type: 2, style: 1, label: "🚀 بیدار کردن سرویس رندر", custom_id: "btn_wake_target" }]
-            }]
-          }
-        });
-      }
-    }
-
-    // مسیر پیش‌فرض: هدایت به صفحه ستاپ یا پنل
-    return Response.redirect(`${url.origin}/setup`, 302);
+  async fetch(request) {
+    // هر درخواستی به این ورکر اولیه، صفحه ویزارد را برمی‌گرداند
+    return new Response(WIZARD_HTML, {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
   }
 };
